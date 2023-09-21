@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef unsigned char u8;
+typedef unsigned long int u32;
+
+#define STACKSIZE 1000
+
+typedef u8 StackEntry;
+typedef struct{
+	u32 top;
+	StackEntry arr[STACKSIZE];
+}Stack_t;
+
+typedef enum{
+	NULL_PTR = 1,
+	OUT_OF_RANGE = 2,
+	SUCCESS = 3
+}ErrorState;
+typedef enum{
+	TRUE = 1,
+	FALSE = 0
+}bool_t;
+
+ErrorState Stack_Init(Stack_t * pS);
+ErrorState Stack_push(Stack_t * pS,StackEntry e );
+ErrorState Stack_pop(Stack_t * pS,StackEntry * pe);
+ErrorState Stack_isEmpty(const Stack_t * pS,bool_t *pstate );
+ErrorState Stack_isFull(const Stack_t * pS,bool_t *pstate);
+bool isValidParentheses(const char* s);
+
+int main(int argc, char *argv[])
+{
+    char input[10000];
+    printf("s = ");
+    fgets(input, sizeof(input), stdin);
+
+    if (input[strlen(input) - 1] == '\n') {
+        input[strlen(input) - 1] = '\0';
+    }
+
+    bool isValid = isValidParentheses(input);
+
+    if (isValid) {
+        printf("true\n");
+    } else {
+        printf("false\n");
+    }
+    return 0;
+}
+
+ErrorState Stack_Init(Stack_t * pS) // just Init top
+{
+	ErrorState  Local_enState = SUCCESS;
+	if(pS == NULL)
+	{
+		Local_enState = NULL_PTR;
+	}
+	else{
+		pS->top = 0;
+	}
+	return Local_enState;
+	
+}
+ErrorState Stack_push(Stack_t * pS,StackEntry e )
+{
+	ErrorState  Local_enState = SUCCESS;
+	if(pS == NULL)
+	{
+		Local_enState = NULL_PTR;
+	}
+	else{
+		//step1 : check it is  not full
+		bool_t state;
+		Stack_isFull( pS,&state);
+		if(state == TRUE) 
+			printf("stack is FULL");
+		else{
+			//step 2: insert in stack 
+			pS->arr[pS->top++] = e;
+			//printf("%d is pushed in stack\n",e);
+		}// it is not full 
+    
+	}// it is not Null ptr 
+    return 	Local_enState;
+}
+ErrorState Stack_pop(Stack_t * pS,StackEntry * pe)
+{
+	ErrorState  Local_enState = SUCCESS;
+	if(pS == NULL)
+	{
+		Local_enState = NULL_PTR;
+	}
+	else{
+		//step1 : check it is  not Empty
+		bool_t state;
+		Stack_isEmpty( pS,&state);
+		if(state == TRUE) 
+			printf("stack is Empty");
+		else{
+			//step 2: pop from stack 
+			*pe = pS->arr[--pS->top];
+			//printf("%d is popped from stack\n",*pe);
+		}// it is not empty
+    
+	}// it is not Null ptr 
+    return 	Local_enState;
+}
+ErrorState Stack_isEmpty(const Stack_t * pS,bool_t *pstate )
+{
+	ErrorState  Local_enState = SUCCESS;
+	if(pS == NULL)
+	{
+		Local_enState = NULL_PTR;
+	}
+	else{
+		if(pS->top == 0)*pstate = TRUE;
+	    else  *pstate =  FALSE;
+	}
+	return Local_enState;
+}
+
+ErrorState Stack_isFull(const Stack_t * pS,bool_t *pstate)
+{
+	ErrorState  Local_enState = SUCCESS;
+	if(pS == NULL)
+	{
+		Local_enState = NULL_PTR;
+	}
+	else{
+	   if(pS->top == STACKSIZE) *pstate = TRUE;
+	   else  *pstate =  FALSE;
+	}
+	return Local_enState;
+}
+
+bool isValidParentheses(const char* s)
+{
+    Stack_t stack;
+    Stack_t *ptrs;
+    ptrs = &stack; // Added the missing semicolon here
+    Stack_Init(ptrs);
+    StackEntry pops, current;
+    size_t i;
+
+    for (i = 0; s[i] != '\0'; i++) {
+        current = s[i];
+
+        if (current == '(' || current == '[' || current == '{') {
+            Stack_push(ptrs, current);
+        } else if (current == ')' || current == ']' || current == '}') {
+			bool_t state;
+			Stack_isEmpty( ptrs,&state);
+			if(state == TRUE){
+                Stack_Init(ptrs);
+                return false;
+            }
+
+            Stack_pop(ptrs, &pops);
+
+            if ((current == ')' && pops != '(') ||
+                (current == ']' && pops != '[') ||
+                (current == '}' && pops != '{')) {
+                Stack_Init(ptrs);
+                return false;
+            }
+        }
+    }
+
+    bool_t emptyState; // Used the correct data type
+    ErrorState isValid = Stack_isEmpty(ptrs, &emptyState); // Removed the comma after Stack_isEmpty
+    Stack_Init(ptrs);
+    return isValid == SUCCESS && emptyState == TRUE;
+}

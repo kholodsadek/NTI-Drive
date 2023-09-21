@@ -1,0 +1,8 @@
+Build:
+	gcc main.c file.c -o project.exe
+Prep1:
+	gcc -E main.c -o main.i
+Prep2:
+	gcc -E file.c -o file.i
+Run:
+	project.exe
